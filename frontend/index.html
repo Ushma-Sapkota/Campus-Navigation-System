@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Navigator - Algorithm Visualizer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app">
+        <!-- HEADER -->
+        <header class="header">
+            <div class="header-left">
+                <div class="header-icon">CN</div>
+                <div>
+                    <div class="header-title">Campus Navigator</div>
+                    <div class="header-subtitle">Interactive Algorithm Visualization</div>
+                </div>
+            </div>
+            <div class="header-right">
+                <span id="algo-badge" class="badge badge-secondary" style="display:none;"></span>
+            </div>
+        </header>
+
+        <!-- MAIN 3-COLUMN LAYOUT -->
+        <div class="main-content">
+
+            <!-- LEFT SIDEBAR: Controls -->
+            <aside class="sidebar sidebar-left">
+                <div class="sidebar-header">
+                    <h2>Controls</h2>
+                </div>
+                <div class="sidebar-body">
+
+                    <!-- Algorithm Selection Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Algorithm</div>
+                            <div class="card-description">Choose an algorithm to visualize</div>
+                        </div>
+                        <div class="card-body">
+                            <select id="algo-select" class="input">
+                                <option value="">Select algorithm...</option>
+                                <option value="dijkstra">Dijkstra's Shortest Path</option>
+                                <option value="search">Binary Search</option>
+                                <option value="sort">Quick Sort (Distance)</option>
+                            </select>
+
+                            <!-- Dijkstra Options -->
+                            <div id="dijkstra-options" class="algo-options">
+                                <div class="form-group" style="margin-top:12px;">
+                                    <label for="start-node">From</label>
+                                    <select id="start-node" class="input"></select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="end-node">To</label>
+                                    <select id="end-node" class="input"></select>
+                                </div>
+                                <button onclick="app.loadDijkstra()" class="btn btn-primary">
+                                    Find Shortest Path
+                                </button>
+                            </div>
+
+                            <!-- Search Options -->
+                            <div id="search-options" class="algo-options">
+                                <div class="form-group" style="margin-top:12px;">
+                                    <label for="search-query">Search for Building</label>
+                                    <input type="text" id="search-query" class="input" placeholder="e.g., Library">
+                                </div>
+                                <button onclick="app.loadSearch()" class="btn btn-primary">
+                                    Search Building
+                                </button>
+                            </div>
+
+                            <!-- Sort Options -->
+                            <div id="sort-options" class="algo-options">
+                                <div class="form-group" style="margin-top:12px;">
+                                    <label for="sort-reference">Sort from</label>
+                                    <select id="sort-reference" class="input"></select>
+                                </div>
+                                <button onclick="app.loadSort()" class="btn btn-primary">
+                                    Sort by Distance
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Playback Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Playback</div>
+                        </div>
+                        <div class="card-body">
+                            <div class="playback-grid">
+                                <button onclick="app.reset()" class="btn btn-outline btn-icon" aria-label="Reset" title="Reset">
+                                    <!-- Skip Back icon -->
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+                                </button>
+                                <button onclick="app.stepBackward()" class="btn btn-outline btn-icon" aria-label="Step back" title="Step back">
+                                    <!-- Chevron Left icon -->
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                                </button>
+                                <button onclick="app.togglePlay()" id="play-btn" class="btn btn-play btn-icon" aria-label="Play" title="Play">
+                                    <!-- Play icon -->
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+                                </button>
+                                <button onclick="app.stepForward()" class="btn btn-outline btn-icon" aria-label="Step forward" title="Step forward">
+                                    <!-- Chevron Right icon -->
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                                </button>
+                            </div>
+
+                            <hr class="separator">
+
+                            <div class="speed-control">
+                                <div class="speed-label">
+                                    <span>Speed</span>
+                                    <span class="speed-value" id="speed-display">1000ms</span>
+                                </div>
+                                <input type="range" id="speed-slider" min="200" max="3000" value="1000" step="100">
+                                <div class="speed-hints">
+                                    <span>Fast</span>
+                                    <span>Slow</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Info Callout -->
+                    <div class="info-callout">
+                        <svg class="info-callout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                        <p>This system visualizes pathfinding, searching, and sorting algorithms on a campus map. Select an algorithm above to begin!</p>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- CENTER: Visualization Canvas -->
+            <main class="visualization-area">
+                <div class="canvas-container">
+                    <canvas id="main-canvas" width="700" height="700"></canvas>
+
+                    <!-- Legend -->
+                    <div class="legend">
+                        <div class="legend-title">Legend</div>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background: #4CAF50;"></span>
+                            <span>Visited</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background: #FFC107;"></span>
+                            <span>Current</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background: #0b0144;"></span>
+                            <span>Unvisited</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background: #F44336;"></span>
+                            <span>Target / Pivot</span>
+                        </div>
+                    </div>
+
+                    <!-- Canvas size badge -->
+                    <div class="canvas-badge">
+                        <span class="badge badge-outline" style="font-size:10px;">700 x 700</span>
+                    </div>
+                </div>
+            </main>
+
+            <!-- RIGHT SIDEBAR: Algorithm Info -->
+            <aside class="sidebar sidebar-right">
+                <div class="sidebar-header">
+                    <h2>Algorithm Info</h2>
+                </div>
+                <div class="sidebar-body">
+
+                    <!-- Progress Card -->
+                    <div class="card progress-card">
+                        <div class="card-body" style="padding-top:14px;">
+                            <div class="progress-top">
+                                <span>Progress</span>
+                                <span class="step-badge"><span id="current-step">0</span> / <span id="total-steps">0</span></span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progress-fill"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabs: Explanation / Code -->
+                    <div class="tabs">
+                        <div class="tab-list">
+                            <button class="tab-btn active" data-tab="explanation">
+                                <!-- Lightbulb -->
+                                <svg style="width:13px;height:13px;vertical-align:-2px;margin-right:4px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>Explain
+                            </button>
+                            <button class="tab-btn" data-tab="code">
+                                <!-- Code -->
+                                <svg style="width:13px;height:13px;vertical-align:-2px;margin-right:4px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Code
+                            </button>
+                        </div>
+
+                        <div id="tab-explanation" class="tab-panel active">
+                            <div class="card explanation-card" style="margin-top:10px;">
+                                <div class="card-body">
+                                    <p id="explanation-text">Select an algorithm to begin visualization.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="tab-code" class="tab-panel">
+                            <div class="card code-card" style="margin-top:10px;">
+                                <pre id="pseudocode">// Select an algorithm to see pseudocode</pre>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Statistics Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <span class="section-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                                    Statistics
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="stat-row">
+                                <span class="stat-label">Nodes Visited</span>
+                                <span class="stat-value" id="stat-nodes">0</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Comparisons</span>
+                                <span class="stat-value" id="stat-comparisons">0</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Total Distance</span>
+                                <span class="stat-value" id="stat-distance">N/A</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Complexity Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">
+                                <span class="section-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                                    Complexity
+                                </span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="stat-row">
+                                <span class="stat-label">Time</span>
+                                <span class="stat-value" id="complexity-time">-</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Space</span>
+                                <span class="stat-value" id="complexity-space">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- FOOTER / STATUS BAR -->
+        <footer class="footer">
+            <div class="footer-left">
+                <span style="display:flex;align-items:center;gap:6px;">
+                    <span class="status-dot"></span>
+                    Ready
+                </span>
+                <span class="footer-divider"></span>
+                <span>8 nodes on map</span>
+            </div>
+            <div class="footer-right">
+                <span>Speed: <span id="footer-speed">1000</span>ms</span>
+            </div>
+        </footer>
+    </div>
+
+
+    <!-- External scripts-->
+    <script src="../api.js"></script>
+    <script src="../visualizer.js"></script>
+    <script src="../app.js"></script>
+</body>
+</html>
